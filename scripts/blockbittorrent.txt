@@ -1,0 +1,58 @@
+#| MikroTik Script Block BitTorrent V1.0
+#| Web  : http://mikrotikshop.blogspot.com/
+#| Email: pstudiodev@gmail.com
+#| Phone: +66896494533
+
+#|
+#| Create L7 Protocols, we will filter all bit torrent expression.
+#|
+/ip firewall layer7-protocol add name=layer7-bittorrent-exp \
+         regexp="^(\\x13bittorrent protocol|azver\\x01\$|get /scrape\\\?info_hash=get /announce\\\?info_hash=|get /client/bitcomet/|GET /data\\\?fid=)|d1:ad2:id20:|\\x08'7P\\)[RP]" comment="Block Bit Torrent"
+
+
+#|
+#| Add firewall filter.
+#| P2P packages (p2p bit-torrent and exp matched)
+#|              ==> bit-list ==> if port = 80 or 443 then allow
+#|         else deny
+#|
+
+#| Block all P2P packages.
+/ip firewall filter add action=add-src-to-address-list \
+      address-list=bit-list \
+      address-list-timeout=1m \
+      chain=forward \
+      disabled=no \
+      dst-address-list=!bit-unblock-list \
+      p2p=bit-torrent \
+      src-address-list=!bit-unblock-list \
+      comment="Block all P2P packages"
+
+#| Block all package that matched bit torrent expression.
+/ip firewall filter add action=add-src-to-address-list \
+      address-list=bit-list \
+         address-list-timeout=1m \
+         chain=forward \
+         disabled=no \
+         dst-address-list=!bit-unblock-list \
+         layer7-protocol=layer7-bittorrent-exp \
+         src-address-list=!bit-unblock-list \
+         src-address-type=local \
+         comment="Block all package that matched bit torrent expression"
+
+#| Drop all TCP package that is in bit-list.
+/ip firewall filter add action=drop \
+      chain=forward \
+      disabled=no \
+      dst-port=!80,443 \
+      protocol=tcp \
+         src-address-list=bit-list \
+         comment="Drop all TCP package that is in bit-list"
+
+#| Drop all UDP package that is in bit-list. (Some torrent program can download via UDP protocol)
+/ip firewall filter add action=drop \
+      chain=forward \
+      disabled=no \
+      protocol=udp \
+      src-address-list=bit-list
+      comment="Drop all UDP package that is in bit-list"
