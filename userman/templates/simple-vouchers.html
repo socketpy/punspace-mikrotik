@@ -1,0 +1,39 @@
+<!-- Header -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>Vouchers</title>
+  <style> @media print {
+    .noprint {
+      display: none;
+    }
+
+    .pagebreak {
+      page-break-after: always;
+    }
+  }
+
+  .voucher {
+    border: 1px dashed;
+    display: inline-block;
+    font-size: 18px;
+    margin: 0px;
+    padding: 15px 20px;
+    width: 170px;
+  }</style>
+</head>
+<body>
+
+<!-- Row -->
+<div class="voucher">
+  <div class="login">Login: %u_username%</div>
+  <div class="pwd">Password: %u_password%</div>
+</div>
+
+<!-- Footer -->
+</body>
+</html>
+
+<!-- Break -->
+<p class="noprint" style="font-size: 10px"> ................ page break ................ </p> <p class="pagebreak">
+  &nbsp;</p>
