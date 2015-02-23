@@ -4,7 +4,7 @@
 # Policy
 #
 # _ ftp         _ reboot
-# x read        _ write
+# x read        x write
 # x policy      x test
 # _ password    _ sniff
 # x sensitive
@@ -61,4 +61,16 @@
   :log info "Successfully email-ed $backupName"
 } on-error={
   :log error "Failed to email $backupName"
+}
+
+# Remove backup file
+:do {
+
+  # Wait for email to complete
+  :delay 300s
+
+  /file remove $backupName
+  :log info "Successfully removed $backupName"
+} on-error={
+  :log error "Failed to remove $backupName"
 }
