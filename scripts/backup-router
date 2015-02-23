@@ -3,10 +3,10 @@
 
 # Policy
 #
-# _ ftp         _ reboot
-# x read        _ write
+#   ftp           reboot
+# x read          write
 # x policy      x test
-# _ password    _ sniff
+#   password      sniff
 # x sensitive
 
 
