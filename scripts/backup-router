@@ -32,6 +32,7 @@
 
 # Names
 :local backupName "$identity-$year$mm$day-$hour$min$sec-auto.backup"
+:local backupNameLatest "$identity-latest.umb"
 :local subject "$identity Backup"
 
 # Backup
@@ -44,6 +45,14 @@
 } on-error={
   :log error "Failed to backup $backupName"
   :error
+}
+
+# Copy backup file to latest
+:do {
+  /tool fetch address=127.0.0.1 mode=ftp user=ftp password=fly1ngF1sh src-path=$backupName dst-path=$backupNameLatest
+  :log info "Successfully copied $backupName to $backupNameLatest"
+} on-error={
+  :log error "Failed to copy $backupName to $backupNameLatest"
 }
 
 # Send email
