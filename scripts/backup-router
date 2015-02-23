@@ -32,7 +32,7 @@
 
 # Names
 :local backupName "$identity-$year$mm$day-$hour$min$sec-auto.backup"
-:local backupNameLatest "$identity-latest.umb"
+:local backupNameLatest "$identity-latest.backup"
 :local subject "$identity Backup"
 
 # Backup
