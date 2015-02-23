@@ -1,0 +1,64 @@
+# backup-userman script
+# by Vichaya Sirisanthana
+
+# Policy
+#
+# _ ftp         _ reboot
+# x read        _ write
+# x policy      x test
+# _ password    _ sniff
+# x sensitive
+
+
+# Get system name
+:local identity [/system identity get name]
+
+# Get date
+:local date [/system clock get date]
+:local year [:pick $date 7 11]
+:local month [:pick $date 0 3]
+:local day [:pick $date 4 6]
+
+# Convert month to numeric
+:local months ("jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec")
+:local mm ([:find $months $month -1] + 1)
+:if ($mm < 10) do={ :set mm ("0" . $mm) }
+
+# Get time
+:local time [/system clock get time]
+:local hour [:pick $time 0 2]
+:local min [:pick $time 3 5]
+:local sec [:pick $time 6 8]
+
+# Names
+:local backupName "$identity-userman-$year$mm$day-$hour$min$sec-auto.umb"
+:local backupNameLatest "$identity-userman-latest.umb"
+:local subject "$identity User Manager Backup"
+
+# Backup
+:do {
+  /tool user-manager database save name=$backupName
+
+  # Wait for backup to complete
+  :delay 30s
+  :log info "Successfully backup-ed $backupName"
+} on-error={
+  :log error "Failed to backup $backupName"
+  :error
+}
+
+# Copy backup file to latest
+:do {
+  /tool fetch address=127.0.0.1 mode=ftp user=ftp password=fly1ngF1sh src-path=$backupName dst-path=$backupNameLatest
+  :log info "Successfully copied $backupName to $backupNameLatest"
+} on-error={
+  :log error "Failed to copy $backupName to $backupNameLatest"
+}
+
+# Send email
+:do {
+  /tool e-mail send server=[:resolve smtp.gmail.com] to=autobot@punspace.com subject="$subject" file=$backupName
+  :log info "Successfully email-ed $backupName"
+} on-error={
+  :log error "Failed to email $backupName"
+}
