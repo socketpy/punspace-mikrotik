@@ -1,0 +1,56 @@
+# remove-false-active-sessions script
+# by Vichaya Sirisanthana
+
+# Policy
+#
+#   ftp           reboot
+# x read        x write
+#   policy      x test
+#   password      sniff
+#   sensitive
+
+
+# :log info "Running script remove-false-active-sessions"
+
+# Change path to userman session
+/tool user-manager session
+
+# Loop thru each active session
+:foreach session in=[find where active=yes] do={
+
+  :local sessionTillTime [get $session till-time]
+  # :local sessionTimeout ([/system clock get time] - [:pick $sessionTillTime ([:find $sessionTillTime " "]+1) [:len $sessionTillTime]] - [/system clock get gmt-offset])
+  # :local sessionTimeout ([/system clock get time] - [:pick $sessionTillTime ([:find $sessionTillTime " "]+1) [:len $sessionTillTime]])
+  :local sessionTimeout (([/system clock get time] - [/system clock get gmt-offset]) - ([:pick $sessionTillTime ([:find $sessionTillTime " "]+1) [:len $sessionTillTime]] - [/tool user-manager customer get [find login=punspace] time-zone]))
+
+  # If sessionTimeout is negative, it may be a new day so add 24 hours.
+  :if ($sessionTimeout < 0) do={
+    # :log info "sessionTimeout is negative: $sessionTimeout"
+    :set sessionTimeout ($sessionTimeout + [:totime 86400])
+    # :log info "sessionTimeout is: $sessionTimeout"
+  }
+
+  # Remove session if last session update (session till time) is more than 2 minutes ago
+  :if ($sessionTimeout > 120) do={
+
+    :local sessionUser [get $session user]
+    :local sessionUserIp [get $session user-ip]
+    :local sessionFromTime [get $session from-time]
+    :local sessionUptime [get $session uptime]
+
+    # :log info "Removing session $session $sessionUser $sessionUserIp $sessionFromTime $sessionTillTime $sessionUptime $sessionTimeout"
+
+    :do {
+      remove numbers=$session
+
+      :log info "Successfully removed session $session $sessionUser $sessionUserIp $sessionFromTime $sessionTillTime $sessionUptime $sessionTimeout"
+    } on-error={
+      :log error "Failed to remove session $session $sessionUser $sessionUserIp $sessionFromTime $sessionTillTime $sessionUptime $sessionTimeout"
+    }
+  }
+}
+
+# Reset path to root
+/
+
+# :log info "Finished running script remove-false-active-sessions"
