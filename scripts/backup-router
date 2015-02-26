@@ -1,6 +1,8 @@
 # backup-router script
 # by Vichaya Sirisanthana
 
+# Note: Require ftp user/group and ftp service enabled
+
 # Policy
 #
 #   ftp           reboot
