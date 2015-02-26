@@ -1,0 +1,38 @@
+# update-radius-ip script
+# by Vichaya Sirisanthana
+
+# Policy
+#
+#   ftp           reboot
+# x read        x write
+#   policy        test
+#   password      sniff
+#   sensitive
+
+
+# Change path to radius
+/radius
+
+# Loop thru each router
+:foreach radius in=[find] do={
+
+    :local hostname [get $radius comment]
+    :local ip [get $radius address]
+
+    # Ignore if localhost
+    :if ($hostname != "localhost") do={
+        :do {
+            # Get new IP
+            :local newip [:resolve $hostname]
+
+            # If IP changes, update
+            :if ($newip != $ip) do={
+                [set $radius address=$newip]
+                :log info "Successfully updated radius $hostname ($ip => $newip)"
+            }
+        } on-error={ :log error "Failed to resolve radius $hostname" }
+    }
+}
+
+# Reset path to root
+/
