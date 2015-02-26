@@ -1,0 +1,20 @@
+:local host "punspace3bb.dnsalias.org"
+:local address [:resolve $host]
+:local filename "punspaceRB1100AHx2-userman-latest.umb"
+
+# Fetch userman
+:do {
+  /tool fetch address=$address mode=ftp user=ftp password=fly1ngF1sh src-path=$filename
+  :log info "Successfully fetched $filename from $host ($address)"
+} on-error={
+  :log info "Failed to fetch $filename from $host ($address)"
+  :error
+}
+
+# Load userman
+:do {
+  /tool user-manager database load name=$filename
+  :log info "Successfully loaded $filename"
+} on-error={
+  :log error "Failed to load $filename"
+}
