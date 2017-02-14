@@ -38,7 +38,7 @@ do {
 
   # Load userman
   :do {
-    #/tool user-manager database load name=$usermanBackupFileName
+    /tool user-manager database load name=$usermanBackupFileName
     :log info "Successfully loaded $usermanBackupFileName"
   } on-error={
     :log error "Failed to load $usermanBackupFileName"
