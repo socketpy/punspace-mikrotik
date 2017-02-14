@@ -1,6 +1,19 @@
-:local host "punspace3bb.dnsalias.org"
+# fetch-and-load-userman script
+# by Vichaya Sirisanthana
+
+# Policy
+#
+# x ftp           reboot
+# x read          write
+#   policy      x test
+#   password      sniff
+#   sensitive     romon
+#   dude
+
+
+:local host "userman.punspace.com"
 :local address [:resolve $host]
-:local filename "punspaceRB1100AHx2-userman-latest.umb"
+:local filename "ps-usm-userman-latest.umb"
 
 # Fetch userman
 :do {
