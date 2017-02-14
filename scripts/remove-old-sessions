@@ -1,0 +1,75 @@
+:log info "Running script remove-old-sessions"
+
+:local successCount 0
+:local failCount 0
+
+:local months ("jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec")
+:local today [/system clock get date]
+:local todayYear [:pick $today 7 11]
+:local todayMonth [:pick $today 0 3]
+:local todayDay [:pick $today 4 6]
+
+:local todayMonthNum [:find $months $todayMonth]
+:local typeofTodayMonthNum [:typeof $todayMonthNum]
+:if ($typeofTodayMonthNum != "num") do={
+  :log error "Error converting today's month $todayMonth to number"
+  :error
+}
+
+:local todayMonthsSinceEpoch (($todayYear-1970)*12 + $todayMonthNum)
+
+# Change path to userman session
+/tool user-manager session
+
+# Loop thru each active session
+:foreach session in=[find where active=no] do={
+
+  :local sessionTillTime [get $session till-time]
+  :local sessionTillDate [:pick $sessionTillTime 0 11]
+  :local sessionTillYear [:pick $sessionTillDate 7 11]
+  :local sessionTillMonth [:pick $sessionTillDate 0 3]
+  :local sessionTillDay [:pick $sessionTillDate 4 6]
+
+  :local sessionTillMonthNum [:find $months $sessionTillMonth]
+  :local typeofSessionTillMonthNum [:typeof $sessionTillMonthNum]
+  :if ($typeofSessionTillMonthNum != "num") do={
+    :log error "Error converting session's month $sessionTillMonth to number"
+    :error
+  }
+
+  :local sessionTillMonthsSinceEpoch (($sessionTillYear-1970)*12 + $sessionTillMonthNum)
+  :local sessionTimeoutMonths ($todayMonthsSinceEpoch - $sessionTillMonthsSinceEpoch)
+
+  # Remove session if last session update (session till time) is more than 1 month ago
+  :if ($sessionTimeoutMonths > 1) do={
+
+    :local sessionUser [get $session user]
+    :local sessionUserIp [get $session user-ip]
+    :local sessionFromTime [get $session from-time]
+    :local sessionUptime [get $session uptime]
+
+    # :log info "Removing session $session $sessionUser $sessionUserIp $sessionFromTime $sessionTillTime $sessionUptime $sessionTimeout"
+
+    :do {
+      remove numbers=$session
+      :set $successCount ($successCount+1)
+      #:log info "Successfully removed old session $session $sessionUser $sessionUserIp $sessionFromTime $sessionTillTime $sessionUptime $sessionTimeoutMonths"
+    } on-error={
+      :set $failCount ($failCount+1)
+      :log error "Failed to remove old session $session $sessionUser $sessionUserIp $sessionFromTime $sessionTillTime $sessionUptime $sessionTimeoutMonths"
+    }
+  }
+}
+
+:if ($successCount > 0) do={
+  :log info "Successfully removed $successCount old sessions"
+}
+
+:if ($failCount > 0) do={
+  :log error "Failed to remove $failCount old sessions"
+}
+
+# Reset path to root
+/
+
+:log info "Finished running script remove-old-sessions"
