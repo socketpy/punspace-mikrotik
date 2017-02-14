@@ -1,0 +1,105 @@
+# update-ddns script
+
+
+# DDNS Variables
+:local ddnsHost "dynupdate.no-ip.com"
+:local username "vsirisanthana@gmail.com"
+:local password "d0lPh1n"
+:local hostname "ps-nim.ddns.net"
+:local ddnsFile "ddns-response.txt"
+:local ddnsResp
+
+# Public IP API Variables
+:local publicIpHost "checkip.dyndns.org"
+:local publicIpAddr
+:local publicIpFile "public-ip-response.html"
+:local publicIp
+
+# Previous IP Variables
+:local prevIpFile "previous-ip.txt"
+:local prevIp "10.10.10.10"
+
+
+# Resolve host(s)
+:do {
+  :set publicIpAddr [:resolve $publicIpHost]
+  #:log info "Successfully resolved Public IP API host $publicIpHost => $publicIpAddr"
+} on-error {
+  :log error "Failed to resolve Public IP API host $publicIpHost"
+  :error
+}
+
+# Get current public IP address
+do {
+  /tool fetch mode=http address=$publicIpAddr src-path=/ dst-path=$publicIpFile
+  #:log info "Successfully fetched Public IP API $publicIpAddr ($publicIpHost)"
+  :delay 2s
+
+  # Parse result
+  :local result [/file get $publicIpFile contents]
+  :local resultLen [:len $result]
+  :local startLoc [:find $result ": " -1]
+  :set startLoc ($startLoc + 2)
+  :local endLoc [:find $result "</body>" -1]
+  :set publicIp [:pick $result $startLoc $endLoc]
+  #:log info "Successfully parsed current public IP address $publicIp"
+
+} on-error {
+  :log info "Failed to fetch Public IP API $publicIpAddr ($publicIpHost)"
+  :error
+}
+
+# Get previous IP address
+do {
+  :set prevIp [/file get $prevIpFile contents]
+  #:log info "Successfully get previous IP address $prevIp from $prevIpFile"
+} on-error {
+  :log warning "Failed to get previous IP address from $prevIpFile; New $prevIpFile file to be created"
+  /file print file=$prevIpFile
+  :delay 5s
+  /file set $prevIpFile contents=""
+  #:log info "Successfully created file $prevIpFile"
+}
+
+# Compare IP addresses
+:if ($publicIp != $prevIp) do={
+
+  do {
+    /tool fetch user=$username password=$password mode=https address=$ddnsHost src-path="/nic/update?hostname=$hostname&myip=$publicIp" dst-path=$ddnsFile
+    :delay 2s
+
+    # Parse return code
+    :local result [/file get $ddnsFile contents]
+    :local endLoc [:find $result " " -1]
+    :if ($endLoc < 0) do={
+      :set $endLoc [:find $result "\n" -1]
+      :if ($endLoc < 0) do={
+        :set $endLoc [:len $result]
+      }
+    }
+    :set ddnsResp [:pick $result 0 $endLoc]
+
+    :if (($ddnsResp = "good") or ($ddnsResp = "nochg")) do={
+      :log info "Successfully updated DDNS host $hostname with IP $publicIp (Return code: $ddnsResp)"
+
+      # Save current public IP to file
+      do {
+        /file set $prevIpFile contents=$publicIp
+        #:log info "Successfully saved current public IP $publicIp to $prevIpFile"
+      } on-error {
+        :log error "Failed to save current public IP $publicIp to $prevIpFile"
+        :error
+      }
+
+    } else={
+      :log info "Failed to update DDNS host $hostname with IP $publicIp (Return code: $ddnsResp)"
+    }
+
+  } on-error {
+    :log error "Failed to update DDNS host $hostname with IP $publicIp"
+    :error
+  }
+
+} else={
+  #:log info "DDNS update not needed"
+}
