@@ -3,12 +3,16 @@
 
 # Policy
 #
-#   ftp           reboot
+# _ ftp         _ reboot
 # x read        x write
 # x policy      x test
-#   password      sniff
-# x sensitive
+# _ password    _ sniff
+# x sensitive   _ romon
+# _ dude
 
+# FTP parameters
+:local ftpUser "ftp"
+:local ftpPwd "fly1ngF1sh"
 
 # Get system name
 :local identity [/system identity get name]
@@ -49,10 +53,21 @@
 
 # Copy backup file to latest
 :do {
-  /tool fetch address=127.0.0.1 mode=ftp user=ftp password=fly1ngF1sh src-path=$backupName dst-path=$backupNameLatest
+  /tool fetch address=127.0.0.1 mode=ftp user=$ftpUser password=$ftpPwd src-path=$backupName dst-path=$backupNameLatest
   :log info "Successfully copied $backupName to $backupNameLatest"
 } on-error={
   :log error "Failed to copy $backupName to $backupNameLatest"
+}
+
+# Send backup file
+:local destinations ("nim.punspace.com","tpg-cat.punspace.com")
+:foreach destination in=$destinations do={
+  :do {
+    /tool fetch address=$destination mode=ftp user=$ftpUser password=$ftpPwd upload=yes src-path=$backupNameLatest dst-path=$backupNameLatest
+    :log info "Successfully uploaded $backupNameLatest to $destination"
+  } on-error={
+    :log error "Failed to upload $backupNameLatest to $destination"
+  }
 }
 
 # Send email
