@@ -7,7 +7,8 @@
 # x read        x write
 #   policy        test
 #   password      sniff
-#   sensitive
+#   sensitive     romon
+#   dude
 
 
 # Change path to radius
