@@ -5,11 +5,12 @@
 
 # Policy
 #
-#   ftp           reboot
+# _ ftp         _ reboot
 # x read        x write
 # x policy      x test
-#   password      sniff
-# x sensitive
+# _ password    _ sniff
+# x sensitive   _ romon
+# _ dude
 
 
 # Get system name
