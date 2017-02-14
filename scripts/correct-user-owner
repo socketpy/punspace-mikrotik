@@ -1,0 +1,35 @@
+# correct-user-owner script
+# by Vichaya Sirisanthana
+
+# Policy
+#
+# _ ftp         _ reboot
+# x read        x write
+# _ policy      _ test
+# _ password    _ sniff
+# _ sensitive   _ romon
+# _ dude
+
+#:log info "Running script correct-user-owner"
+
+:local correctOwner "punspace"
+
+# Change path to userman user
+/tool user-manager user
+
+# Loop thru each incorrect owner
+:foreach owner in=non,pen,tong do={
+
+  # Loop thru each user
+  :foreach user in=[find where customer=$owner] do={
+
+    :local username [get $user username]
+    [set $user customer=$correctOwner]
+    :log info "Successfully corrected user $username's owner ($owner => $correctOwner)"
+  }
+}
+
+# Reset path to root
+/
+
+#:log info "Finished running script correct-user-owner"
