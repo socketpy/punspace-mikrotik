@@ -1,0 +1,46 @@
+:local usermanBackupFileName "ps-usm-userman-latest.umb"
+:local usermanBackupFileSize "0"
+
+:local usermanBackupFileNamePrev "ps-usm-userman-prev.umb"
+:local usermanBackupFileSizePrev "0"
+
+# Get userman backup file size
+do {
+  :set usermanBackupFileSize [/file get $usermanBackupFileName size]
+  :log info "Successfully got userman backup file size $usermanBackupFileSize ($usermanBackupFileName)"
+} on-error={
+  :log error "Failed to get userman backup file size ($usermanBackupFileName)"
+  :error
+}
+
+# Get previous userman backup file size
+do {
+  :set usermanBackupFileSizePrev [/file get $usermanBackupFileNamePrev size]
+  :log info "Successfully got previous userman backup file size $usermanBackupFileSizePrev ($usermanBackupFileNamePrev)"
+} on-error={
+  :log warning "Failed to get previous userman backup file size ($usermanBackupFileNamePrev)"
+}
+
+# Compare file sizes
+:if ($usermanBackupFileSize != $usermanBackupFileSizePrev) do={
+
+  # Load userman
+  :do {
+    #/tool user-manager database load name=$usermanBackupFileName
+    :log info "Successfully loaded $usermanBackupFileName"
+  } on-error={
+    :log error "Failed to load $usermanBackupFileName"
+    :error
+  }
+
+  # Copy latest to prev
+  :do {
+    /tool fetch address=127.0.0.1 mode=ftp user=ftp password=fly1ngF1sh src-path=$usermanBackupFileName dst-path=$usermanBackupFileNamePrev
+    :log info "Successfully copied $usermanBackupFileName to $usermanBackupFileNamePrev"
+  } on-error={
+    :log error "Failed to copy $usermanBackupFileName to $usermanBackupFileNamePrev"
+  }
+
+} else={
+  :log warning "Userman backup file $usermanBackupFileName did not change"
+}
