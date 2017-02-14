@@ -3,11 +3,12 @@
 
 # Policy
 #
-#   ftp           reboot
+# _ ftp         _ reboot
 # x read        x write
-#   policy      x test
-#   password      sniff
-#   sensitive
+# _ policy      x test
+# _ password    _ sniff
+# _ sensitive   _ romon
+# _ dude
 
 
 # :log info "Running script remove-false-active-sessions"
