@@ -1,3 +1,15 @@
+# backup-userman script
+# by Vichaya Sirisanthana
+
+# Policy
+#
+# x ftp         _ reboot
+# x read        x write
+# _ policy      x test
+# _ password    _ sniff
+# _ sensitive   _ romon
+# _ dude
+
 :local usermanBackupFileName "ps-usm-userman-latest.umb"
 :local usermanBackupFileSize "0"
 
